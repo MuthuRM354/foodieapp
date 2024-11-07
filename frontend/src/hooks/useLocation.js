@@ -1,43 +1,22 @@
-import { useState, useEffect } from 'react';
-import locationService from '../services/locationService';
+import { useState, useCallback } from 'react';
 
-export const useLocation = () => {
-  const [location, setLocation] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+export const useToast = () => {
+  const [toast, setToast] = useState({ visible: false, message: '', type: '' });
 
-  const getCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser');
-      setLoading(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          const nearbyRestaurants = await locationService.getNearbyRestaurants(
-            latitude,
-            longitude
-          );
-          setLocation({ coords: { latitude, longitude }, nearbyRestaurants });
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setLoading(false);
-        }
-      },
-      (error) => {
-        setError(error.message);
-        setLoading(false);
-      }
-    );
-  };
-
-  useEffect(() => {
-    getCurrentLocation();
+  const showToast = useCallback((message, type = 'info') => {
+    setToast({ visible: true, message, type });
+    setTimeout(() => {
+      setToast({ visible: false, message: '', type: '' });
+    }, 3000);
   }, []);
 
-  return { location, error, loading, refreshLocation: getCurrentLocation };
+  const hideToast = useCallback(() => {
+    setToast({ visible: false, message: '', type: '' });
+  }, []);
+
+  return {
+    toast,
+    showToast,
+    hideToast,
+  };
 };

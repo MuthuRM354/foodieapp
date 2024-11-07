@@ -1,4 +1,10 @@
+FROM maven:3.8.4-openjdk-17 AS builder
 WORKDIR /app
-COPY target/order-service-0.0.1-SNAPSHOT.jar app.jar
+COPY . .
+RUN mvn clean package -DskipTests
+
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8083
-ENTRYPOINT ["java", "-jar", "app.jar"]ENTRYPOINT ["top", "-b"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

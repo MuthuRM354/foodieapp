@@ -1,12 +1,14 @@
 package com.foodieapp.restaurant.repository;
 
 import com.foodieapp.restaurant.model.Restaurant;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 import java.util.List;
 
-public interface RestaurantRepository extends MongoRepository<Restaurant, String> {
-    List<Restaurant> findByLocation(String location);
-    List<Restaurant> findByCuisine(String cuisine);
+@Repository
+public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
+    List<Restaurant> findByIsActiveTrue();
     List<Restaurant> findByOwnerId(String ownerId);
-    List<Restaurant> findByStatus(String status);
+    List<Restaurant> findByCuisine(String cuisine);
+    List<Restaurant> findByNameContainingIgnoreCase(String name);
 }

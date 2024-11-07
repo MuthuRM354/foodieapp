@@ -1,38 +1,54 @@
 package com.foodieapp.notification.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Document(collection = "notifications")
+@Entity
+@Table(name = "notifications")
 public class Notification {
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String userId;
+    private String title;
     private String message;
-    private String type;
-    private boolean read;
-    private LocalDateTime createdAt;
+    private NotificationType type;
+    private LocalDateTime timestamp;
+    private Boolean isRead;
+    private String referenceId;
+    private String additionalData;
 
-    public Notification(String userId, String message, String type) {
-        this.userId = userId;
-        this.message = message;
-        this.type = type;
-        this.read = false;
-        this.createdAt = LocalDateTime.now();
+    // Constructors
+    public Notification() {
+        this.timestamp = LocalDateTime.now();
+        this.isRead = false;
     }
 
     // Getters and Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
-    public boolean isRead() { return read; }
-    public void setRead(boolean read) { this.read = read; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public NotificationType getType() { return type; }
+    public void setType(NotificationType type) { this.type = type; }
+
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
+    public Boolean getIsRead() { return isRead; }
+    public void setIsRead(Boolean read) { isRead = read; }
+
+    public String getReferenceId() { return referenceId; }
+    public void setReferenceId(String referenceId) { this.referenceId = referenceId; }
+
+    public String getAdditionalData() { return additionalData; }
+    public void setAdditionalData(String additionalData) { this.additionalData = additionalData; }
 }

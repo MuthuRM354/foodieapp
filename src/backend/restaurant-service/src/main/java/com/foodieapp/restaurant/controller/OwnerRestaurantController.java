@@ -6,36 +6,42 @@ import com.foodieapp.restaurant.service.RestaurantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/owner/restaurants")
 public class OwnerRestaurantController {
 
+    private final RestaurantService restaurantService;
+
     @Autowired
-    private RestaurantService restaurantService;
+    public OwnerRestaurantController(RestaurantService restaurantService) {
+        this.restaurantService = restaurantService;
+    }
 
     @PostMapping
     public ResponseEntity<Restaurant> createRestaurant(@RequestBody Restaurant restaurant) {
         return ResponseEntity.ok(restaurantService.createRestaurant(restaurant));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Restaurant> updateRestaurant(
-            @PathVariable String id,
-            @RequestBody Restaurant restaurant) {
-        return ResponseEntity.ok(restaurantService.updateRestaurant(id, restaurant));
-    }
-
-    @PutMapping("/{id}/menu")
-    public ResponseEntity<Restaurant> updateMenu(
-            @PathVariable String id,
-            @RequestBody List<MenuItem> menu) {
-        return ResponseEntity.ok(restaurantService.updateMenu(id, menu));
-    }
-
     @GetMapping("/owner/{ownerId}")
     public ResponseEntity<List<Restaurant>> getOwnerRestaurants(@PathVariable String ownerId) {
         return ResponseEntity.ok(restaurantService.getRestaurantsByOwner(ownerId));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Restaurant> updateRestaurant(@PathVariable Long id, @RequestBody Restaurant restaurant) {
+        return ResponseEntity.ok(restaurantService.updateRestaurant(id, restaurant));
+    }
+
+    @PostMapping("/{restaurantId}/menu-items")
+    public ResponseEntity<MenuItem> addMenuItem(@PathVariable Long restaurantId, @RequestBody MenuItem menuItem) {
+        return ResponseEntity.ok(restaurantService.addMenuItem(restaurantId, menuItem));
+    }
+
+    @GetMapping("/{restaurantId}/menu-items")
+    public ResponseEntity<List<MenuItem>> getMenuItems(@PathVariable Long restaurantId) {
+        return ResponseEntity.ok(restaurantService.getMenuItems(restaurantId));
     }
 }

@@ -34,6 +34,7 @@ export const registerUser = (userData) => async (dispatch) => {
     throw error;
   }
 };
+
 export const logout = () => (dispatch) => {
   authService.logout();
   dispatch({ type: LOGOUT });

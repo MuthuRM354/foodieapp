@@ -1,96 +1,176 @@
 import React, { useState, useEffect } from 'react';
+import {
+  LineChart, Line,
+  BarChart, Bar,
+  PieChart, Pie,
+  AreaChart, Area,
+  XAxis, YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 import LoadingStates from '../common/LoadingStates';
-import { Line, Bar, Pie } from 'react-chartjs-2';
+import { useToast } from '../../hooks/useToast';
 
 const Analytics = () => {
-  const [timeFrame, setTimeFrame] = useState('week'); // week, month, year
-  const [analytics, setAnalytics] = useState({
-    revenue: [],
+  const [timeRange, setTimeRange] = useState('week');
+  const [metrics, setMetrics] = useState({
+    sales: [],
     orders: [],
-    topItems: [],
-    customerStats: {}
+    items: [],
+    customers: []
   });
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [timeRange]);
+
+  const fetchAnalyticsData = async () => {
+    setLoading(true);
+    try {
+      // API call to fetch analytics data based on timeRange
+      setLoading(false);
+    } catch (error) {
+      showToast('Failed to fetch analytics data', 'error');
+      setLoading(false);
+    }
+  };
+
+  const renderMetricCards = () => (
+    <div className="metric-cards">
+      <div className="metric-card">
+        <h3>Total Revenue</h3>
+        <p className="amount">${metrics.totalRevenue}</p>
+        <span className="trend up">↑ 15%</span>
+      </div>
+      <div className="metric-card">
+        <h3>Total Orders</h3>
+        <p className="amount">{metrics.totalOrders}</p>
+        <span className="trend up">↑ 8%</span>
+      </div>
+      <div className="metric-card">
+        <h3>Average Order Value</h3>
+        <p className="amount">${metrics.avgOrderValue}</p>
+        <span className="trend up">↑ 5%</span>
+      </div>
+      <div className="metric-card">
+        <h3>New Customers</h3>
+        <p className="amount">{metrics.newCustomers}</p>
+        <span className="trend down">↓ 3%</span>
+      </div>
+    </div>
+  );
 
   return (
     <div className="restaurant-analytics">
-      <h2>Restaurant Analytics</h2>
-
-      <div className="time-filter">
-        <button
-          className={timeFrame === 'week' ? 'active' : ''}
-          onClick={() => setTimeFrame('week')}
+      <div className="analytics-header">
+        <h2>Restaurant Analytics</h2>
+        <select
+          value={timeRange}
+          onChange={(e) => setTimeRange(e.target.value)}
+          className="time-range-select"
         >
-          Weekly
-        </button>
-        <button
-          className={timeFrame === 'month' ? 'active' : ''}
-          onClick={() => setTimeFrame('month')}
-        >
-          Monthly
-        </button>
-        <button
-          className={timeFrame === 'year' ? 'active' : ''}
-          onClick={() => setTimeFrame('year')}
-        >
-          Yearly
-        </button>
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+          <option value="year">This Year</option>
+        </select>
       </div>
 
       {loading ? (
-        <LoadingStates />
+        <LoadingStates type="skeleton" />
       ) : (
-        <div className="analytics-dashboard">
+        <div className="analytics-grid">
+          {renderMetricCards()}
+
           <div className="chart-container">
-            <h3>Revenue Overview</h3>
-            <Line
-              data={analytics.revenue}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false
-              }}
-            />
+            <h3>Sales Overview</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={metrics.sales}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#8884d8"
+                  fill="#8884d8"
+                  fillOpacity={0.3}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="orders"
+                  stroke="#82ca9d"
+                  fill="#82ca9d"
+                  fillOpacity={0.3}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
 
           <div className="chart-container">
-            <h3>Order Trends</h3>
-            <Bar
-              data={analytics.orders}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false
-              }}
-            />
+            <h3>Popular Items</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={metrics.items}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="quantity" fill="#8884d8" />
+                <Bar dataKey="revenue" fill="#82ca9d" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
 
           <div className="chart-container">
-            <h3>Top Selling Items</h3>
-            <Pie
-              data={analytics.topItems}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false
-              }}
-            />
+            <h3>Order Distribution</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={metrics.orderTypes}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  fill="#8884d8"
+                  label
+                />
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
 
-          <div className="stats-grid">
-            <div className="stat-card">
-              <h4>Total Orders</h4>
-              <p>{analytics.customerStats.totalOrders}</p>
-            </div>
-            <div className="stat-card">
-              <h4>Average Order Value</h4>
-              <p>${analytics.customerStats.avgOrderValue}</p>
-            </div>
-            <div className="stat-card">
-              <h4>Customer Satisfaction</h4>
-              <p>{analytics.customerStats.satisfaction}%</p>
-            </div>
-            <div className="stat-card">
-              <h4>Repeat Customers</h4>
-              <p>{analytics.customerStats.repeatCustomers}%</p>
-            </div>
+          <div className="chart-container">
+            <h3>Customer Retention</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={metrics.customers}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="new"
+                  stroke="#8884d8"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="returning"
+                  stroke="#82ca9d"
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}

@@ -1,40 +1,46 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { registerUser } from '../../redux/actions/authActions';
-import ImageUpload from '../common/ImageUpload';
+import { useNavigate } from 'react-router-dom';
+import { register } from '../../redux/actions/authActions';
+import { useToast } from '../../hooks/useToast';
 import LoadingStates from '../common/LoadingStates';
 
 const Register = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    phoneNumber: '',
-    userType: 'customer', // customer, restaurant-owner
-    profileImage: ''
+    role: 'CUSTOMER'
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  const validateForm = () => {
+    if (formData.password !== formData.confirmPassword) {
+      showToast('Passwords do not match', 'error');
+      return false;
+    }
+    if (formData.password.length < 8) {
+      showToast('Password must be at least 8 characters', 'error');
+      return false;
+    }
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
-    setError('');
-
     try {
-      await dispatch(registerUser(formData));
+      await dispatch(register(formData));
+      showToast('Registration successful!', 'success');
       navigate('/login');
-    } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
+    } catch (error) {
+      showToast(error.message || 'Registration failed', 'error');
     } finally {
       setLoading(false);
     }
@@ -42,11 +48,9 @@ const Register = () => {
 
   return (
     <div className="auth-container">
-      <div className="auth-card register">
+      <div className="auth-card">
         <h2>Create Account</h2>
         <p>Join FoodieApp today</p>
-
-        {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -56,6 +60,7 @@ const Register = () => {
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
               required
+              placeholder="Enter your full name"
             />
           </div>
 
@@ -66,34 +71,7 @@ const Register = () => {
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
               required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Phone Number</label>
-            <input
-              type="tel"
-              value={formData.phoneNumber}
-              onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Account Type</label>
-            <select
-              value={formData.userType}
-              onChange={(e) => setFormData({...formData, userType: e.target.value})}
-            >
-              <option value="customer">Customer</option>
-              <option value="restaurant-owner">Restaurant Owner</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Profile Image</label>
-            <ImageUpload
-              onImageUpload={(url) => setFormData({...formData, profileImage: url})}
+              placeholder="Enter your email"
             />
           </div>
 
@@ -104,6 +82,8 @@ const Register = () => {
               value={formData.password}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
               required
+              placeholder="Create a password"
+              minLength="8"
             />
           </div>
 
@@ -114,16 +94,37 @@ const Register = () => {
               value={formData.confirmPassword}
               onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
               required
+              placeholder="Confirm your password"
             />
           </div>
 
-          <button type="submit" disabled={loading}>
+          <div className="form-group">
+            <label>Register as</label>
+            <select
+              value={formData.role}
+              onChange={(e) => setFormData({...formData, role: e.target.value})}
+            >
+              <option value="CUSTOMER">Customer</option>
+              <option value="RESTAURANT_OWNER">Restaurant Owner</option>
+            </select>
+          </div>
+
+          <button type="submit" disabled={loading} className="submit-btn">
             {loading ? <LoadingStates type="spinner" /> : 'Create Account'}
           </button>
         </form>
 
         <div className="auth-links">
           <p>Already have an account? <a href="/login">Sign In</a></p>
+        </div>
+
+        <div className="social-auth">
+          <button className="google-auth">
+            <i className="fab fa-google"></i> Continue with Google
+          </button>
+          <button className="facebook-auth">
+            <i className="fab fa-facebook"></i> Continue with Facebook
+          </button>
         </div>
       </div>
     </div>

@@ -1,109 +1,154 @@
-version: '3.8'
+
 
 services:
-  # frontend
   frontend:
     build: ./frontend
     ports:
       - "3000:3000"
-    depends_on:
-      - api-gateway
+    networks:
+      - foodieapp-network
 
-  # api gateway
-  api-gateway:
-    build: ./api-gateway
-    ports:
-      - "8080:8080"
-    depends_on:
-      - eureka-server
-
-  # service discovery
   eureka-server:
-    build:
-      context: ./src/backend/eureka-server
-      dockerfile: c:/users/muthu/intellij/backend_capstone/foodieapp/foodieapp/src/backend/eureka-server/Dockerfile
+    build: ./src/backend/eureka-server
     ports:
       - "8761:8761"
+    networks:
+      - foodieapp-network
 
-  # backend services
   user-service:
-    build: ./backend/user-service
+    build: ./src/backend/user-service
     ports:
       - "8081:8081"
     depends_on:
-      - mongodb
+      - mysql
       - eureka-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://foodieapp-mysql:3306/foodieapp_users
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Inivin@4854
+    networks:
+      - foodieapp-network
 
   restaurant-service:
-    build: ./backend/restaurant-service
+    build: ./src/backend/restaurant-service
     ports:
       - "8082:8082"
     depends_on:
       - mongodb
       - eureka-server
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://foodieapp:foodieapp123@foodieapp-mongodb:27017/foodieapp_restaurants
+    networks:
+      - foodieapp-network
 
   order-service:
-    build: ./backend/order-service
+    build: ./src/backend/order-service
     ports:
       - "8083:8083"
     depends_on:
       - mongodb
       - eureka-server
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://foodieapp:foodieapp123@foodieapp-mongodb:27017/foodieapp_orders
+    networks:
+      - foodieapp-network
 
   favorite-service:
-    build: ./backend/favorite-service
+    build: ./src/backend/favorite-service
     ports:
       - "8084:8084"
     depends_on:
       - mongodb
       - eureka-server
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://foodieapp:foodieapp123@foodieapp-mongodb:27017/foodieapp_favorites
+    networks:
+      - foodieapp-network
 
   location-service:
-    build: ./backend/location-service
+    build: ./src/backend/location-service
     ports:
       - "8085:8085"
     depends_on:
       - mongodb
       - eureka-server
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://foodieapp:foodieapp123@foodieapp-mongodb:27017/foodieapp_locations
+    networks:
+      - foodieapp-network
 
   notification-service:
-    build: ./backend/notification-service
+    build: ./src/backend/notification-service
     ports:
       - "8086:8086"
     depends_on:
       - mongodb
-      - rabbitmq
       - eureka-server
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://foodieapp:foodieapp123@foodieapp-mongodb:27017/foodieapp_notifications
+    networks:
+      - foodieapp-network
 
-  # databases and message broker
+  mysql:
+    image: mysql:8.0
+    container_name: foodieapp-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: foodieapp_users
+      MYSQL_USER: foodieapp
+      MYSQL_PASSWORD: foodieapp123
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - foodieapp-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
   mongodb:
     image: mongo:latest
-    ports:
-      - "27017:27017"
+    container_name: foodieapp-mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: foodieapp_restaurants
+    ports:
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+    networks:
+      - foodieapp-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  mongo-express:
+    image: mongo-express
+    container_name: foodieapp-mongo-express
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-
-  # authentication
-  keycloak:
-    image: jboss/keycloak
+      ME_CONFIG_MONGODB_ADMINUSERNAME: foodieapp
+      ME_CONFIG_MONGODB_ADMINPASSWORD: foodieapp123
+      ME_CONFIG_MONGODB_URL: mongodb://foodieapp:foodieapp123@mongodb:27017/
     ports:
-      - "8090:8080"
-    environment:
-      KEYCLOAK_USER: [MASKED]
-      KEYCLOAK_PASSWORD: [MASKED]
-      DB_VENDOR: h2
+      - "8087:8081"
+    networks:
+      - foodieapp-network
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+networks:
+  foodieapp-network:
+    driver: bridge
 
 volumes:
+  mysql_data:
+    driver: local
   mongodb_data:
+    driver: local

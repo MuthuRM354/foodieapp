@@ -1,14 +1,35 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { login } from '../../redux/actions/authActions';
+import { useToast } from '../../hooks/useToast';
+import LoadingStates from '../common/LoadingStates';
 
 const Login = () => {
   const dispatch = useDispatch();
-  const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [credentials, setCredentials] = useState({
+    email: '',
+    password: ''
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await dispatch(login(credentials));
+    setLoading(true);
+
+    try {
+      await dispatch(login(credentials));
+      const redirectPath = location.state?.from?.pathname || '/';
+      showToast('Login successful!', 'success');
+      navigate(redirectPath);
+    } catch (error) {
+      showToast(error.message || 'Login failed', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -25,33 +46,43 @@ const Login = () => {
               value={credentials.email}
               onChange={(e) => setCredentials({...credentials, email: e.target.value})}
               required
+              placeholder="Enter your email"
             />
           </div>
 
           <div className="form-group">
             <label>Password</label>
-            <input
-              type="password"
-              value={credentials.password}
-              onChange={(e) => setCredentials({...credentials, password: e.target.value})}
-              required
-            />
+            <div className="password-input">
+              <input
+                type="password"
+                value={credentials.password}
+                onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                required
+                placeholder="Enter your password"
+              />
+            </div>
           </div>
 
-          <button type="submit">Sign In</button>
+          <button type="submit" disabled={loading} className="submit-btn">
+            {loading ? <LoadingStates type="spinner" /> : 'Sign In'}
+          </button>
         </form>
 
         <div className="auth-links">
-          <a href="/forgot-password">Forgot Password?</a>
-          <a href="/register">Create an Account</a>
+          <a href="/forgot-password" className="forgot-password">
+            Forgot Password?
+          </a>
+          <a href="/register" className="create-account">
+            Create an Account
+          </a>
         </div>
 
         <div className="social-auth">
           <button className="google-auth">
-            Continue with Google
+            <i className="fab fa-google"></i> Continue with Google
           </button>
           <button className="facebook-auth">
-            Continue with Facebook
+            <i className="fab fa-facebook"></i> Continue with Facebook
           </button>
         </div>
       </div>

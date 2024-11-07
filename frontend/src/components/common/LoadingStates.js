@@ -5,7 +5,9 @@ const LoadingStates = ({ type = 'default' }) => {
     switch (type) {
       case 'skeleton':
         return (
-          <div className="skeleton-loading">
+          <div className="skeleton-loading" role="alert" aria-busy="true">
+            <div className="skeleton-item"></div>
+            <div className="skeleton-item"></div>
             <div className="skeleton-item"></div>
             <div className="skeleton-item"></div>
             <div className="skeleton-item"></div>
@@ -14,27 +16,30 @@ const LoadingStates = ({ type = 'default' }) => {
 
       case 'spinner':
         return (
-          <div className="spinner-loading">
+          <div className="spinner-loading" role="alert" aria-busy="true">
             <div className="spinner"></div>
+            <span className="sr-only">Loading...</span>
           </div>
         );
 
       case 'pulse':
         return (
-          <div className="pulse-loading">
+          <div className="pulse-loading" role="alert" aria-busy="true">
             <div className="pulse"></div>
+            <div className="pulse-shadow"></div>
+            <span className="sr-only">Loading...</span>
           </div>
         );
 
       default:
         return (
-          <div className="default-loading">
+          <div className="default-loading" role="alert" aria-busy="true">
             <div className="loading-dots">
               <span></span>
               <span></span>
               <span></span>
             </div>
-            <p>Loading...</p>
+            <p className="loading-text">Loading...</p>
           </div>
         );
     }

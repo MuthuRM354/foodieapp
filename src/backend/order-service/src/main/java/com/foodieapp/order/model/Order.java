@@ -1,54 +1,64 @@
 package com.foodieapp.order.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 
-@Document(collection = "orders")
+@Entity
+@Table(name = "orders")
 public class Order {
-
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String userId;
-    private String restaurantId;
-    private List<OrderItem> items;
-    private double totalAmount;
-    private String status;
+    private Long restaurantId;
     private LocalDateTime orderTime;
+    private Double totalAmount;
+    private OrderStatus status;
     private String deliveryAddress;
+    private String specialInstructions;
+    private String paymentMethod;
     private String paymentStatus;
+    private List<OrderItem> items = new ArrayList<>();
 
-    // Constructor
-    public Order(String userId, String restaurantId, List<OrderItem> items,
-                double totalAmount, String deliveryAddress) {
-        this.userId = userId;
-        this.restaurantId = restaurantId;
-        this.items = items;
-        this.totalAmount = totalAmount;
-        this.status = "PENDING";
-        this.paymentStatus = "PENDING";
+    // Constructors
+    public Order() {
         this.orderTime = LocalDateTime.now();
-        this.deliveryAddress = deliveryAddress;
+        this.status = OrderStatus.PENDING;
     }
 
     // Getters and Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
-    public String getRestaurantId() { return restaurantId; }
-    public void setRestaurantId(String restaurantId) { this.restaurantId = restaurantId; }
-    public List<OrderItem> getItems() { return items; }
-    public void setItems(List<OrderItem> items) { this.items = items; }
-    public double getTotalAmount() { return totalAmount; }
-    public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+
+    public Long getRestaurantId() { return restaurantId; }
+    public void setRestaurantId(Long restaurantId) { this.restaurantId = restaurantId; }
+
     public LocalDateTime getOrderTime() { return orderTime; }
     public void setOrderTime(LocalDateTime orderTime) { this.orderTime = orderTime; }
+
+    public Double getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(Double totalAmount) { this.totalAmount = totalAmount; }
+
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
+
     public String getDeliveryAddress() { return deliveryAddress; }
     public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+
+    public String getSpecialInstructions() { return specialInstructions; }
+    public void setSpecialInstructions(String specialInstructions) { this.specialInstructions = specialInstructions; }
+
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+
     public String getPaymentStatus() { return paymentStatus; }
     public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+
+    public List<OrderItem> getItems() { return items; }
+    public void setItems(List<OrderItem> items) { this.items = items; }
 }
