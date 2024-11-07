@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # frontend
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+
+  # api gateway
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+
+  # service discovery
+  eureka-server:
+    build:
+      context: ./src/backend/eureka-server
+      dockerfile: c:/users/muthu/intellij/backend_capstone/foodieapp/foodieapp/src/backend/eureka-server/Dockerfile
+    ports:
+      - "8761:8761"
+
+  # backend services
+  user-service:
+    build: ./backend/user-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb
+      - eureka-server
+
+  restaurant-service:
+    build: ./backend/restaurant-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mongodb
+      - eureka-server
+
+  order-service:
+    build: ./backend/order-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - mongodb
+      - eureka-server
+
+  favorite-service:
+    build: ./backend/favorite-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - mongodb
+      - eureka-server
+
+  location-service:
+    build: ./backend/location-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      - mongodb
+      - eureka-server
+
+  notification-service:
+    build: ./backend/notification-service
+    ports:
+      - "8086:8086"
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - eureka-server
+
+  # databases and message broker
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongodb_data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  # authentication
+  keycloak:
+    image: jboss/keycloak
+    ports:
+      - "8090:8080"
+    environment:
+      KEYCLOAK_USER: [MASKED]
+      KEYCLOAK_PASSWORD: [MASKED]
+      DB_VENDOR: h2
+
+volumes:
+  mongodb_data:
